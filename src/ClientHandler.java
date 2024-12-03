@@ -9,9 +9,11 @@ import java.net.Socket;
 public class ClientHandler implements Runnable {
 
     private Socket socket;
+    private StudentHandler sh;
 
-    public ClientHandler(Socket socket) {
+    public ClientHandler(Socket socket, StudentHandler sh) {
         this.socket = socket;
+        this.sh = sh;
     }
 
     private void close() {
@@ -20,6 +22,16 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
             
         }
+    }
+
+    private String getMethod(String message) {
+        if (message.startsWith("GET"))
+            return "GET";
+        else if (message.startsWith("POST"))
+            return "POST";
+        else if (message.startsWith("DELETE"))
+            return "DELETE";
+        return null;
     }
 
     @Override
@@ -36,6 +48,14 @@ public class ClientHandler implements Runnable {
                     BufferedReader in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));) {
 
                 String message = in.readLine();
+                if (message != null) {
+                    if(this.getMethod(message) == "POST") {
+                        try {
+                            sh.createStudent(this);
+                        } catch (InterruptedException e) {
+                        }
+                    }
+                }
 
                 String responseBody = "<html><body><h3>Olá, mundo!</h3></body></html>";
 
