@@ -12,6 +12,7 @@ public class StudentHandler {
     
     private synchronized void getAcess(ClientHandler user) throws InterruptedException {
         while (this.user != null) {
+            System.out.println("Acesso negado.");
             wait();
         }
         this.user = user;
@@ -62,10 +63,25 @@ public class StudentHandler {
         while (studentIterator.hasNext()) {
             Student student = studentIterator.next();
             if(student.getId() == studentId) {
+                this.leftAcess();
                 return student.toHtml();
             }
         }
         this.leftAcess();
         return null;
+    }
+
+    public synchronized Boolean studentExists(int studentId, ClientHandler user) throws InterruptedException {
+        this.getAcess(user);
+        Iterator<Student> studentIterator = this.students.iterator();
+        while (studentIterator.hasNext()) {
+            Student student = studentIterator.next();
+            if(student.getId() == studentId) {
+                this.leftAcess();
+                return true;
+            }
+        }
+        this.leftAcess();
+        return false;
     }
 }

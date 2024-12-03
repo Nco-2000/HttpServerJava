@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ClientHandler implements Runnable {
 
@@ -34,6 +36,18 @@ public class ClientHandler implements Runnable {
         return null;
     }
 
+    public static Integer extractAlunoNumber(String url) {
+        String regex = "/aluno/(\\d+)";
+        
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(url);
+        
+        if (matcher.find()) {
+            return Integer.parseInt(matcher.group(1));
+        }
+        return null;
+    }
+
     @Override
     public void run() {
 
@@ -47,7 +61,9 @@ public class ClientHandler implements Runnable {
                     PrintWriter out = new PrintWriter(this.socket.getOutputStream());
                     BufferedReader in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));) {
 
+                String responseBody = "404";
                 String message = in.readLine();
+                System.out.println(message);
                 if (message != null) {
                     if(this.getMethod(message) == "POST") {
                         try {
@@ -55,9 +71,19 @@ public class ClientHandler implements Runnable {
                         } catch (InterruptedException e) {
                         }
                     }
+                    else if (message.startsWith("GET")) {
+                        try {
+                            //System.out.println(sh.getStudentToHTML(extractAlunoNumber(message), this));
+                            int studentId = extractAlunoNumber(message);
+                            if (sh.studentExists(studentId, this))
+                                responseBody = sh.getStudentToHTML(studentId, this);
+                            else
+                                responseBody = "<html><body><h3>Erro 404: Aluno " + extractAlunoNumber(message) + " não existe!<h3/><body/><html/>";
+                            
+                        } catch (InterruptedException e) {
+                        }
+                    }
                 }
-
-                String responseBody = "<html><body><h3>Olá, mundo!</h3></body></html>";
 
                 out.println("HTTP/1.1 200 OK");
                 out.println("Content-Type: text/html; charset=UTF-8");
