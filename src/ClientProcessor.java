@@ -8,14 +8,14 @@ import java.net.Socket;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ClientHandler implements Runnable {
+public class ClientProcessor implements Runnable {
 
     private Socket socket;
-    private StudentHandler sh;
+    private StudentHandler studentHandler;
 
-    public ClientHandler(Socket socket, StudentHandler sh) {
+    public ClientProcessor(Socket socket, StudentHandler sh) {
         this.socket = socket;
-        this.sh = sh;
+        this.studentHandler = sh;
     }
 
     private void close() {
@@ -26,18 +26,8 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private String getMethod(String message) {
-        if (message.startsWith("GET"))
-            return "GET";
-        else if (message.startsWith("POST"))
-            return "POST";
-        else if (message.startsWith("DELETE"))
-            return "DELETE";
-        return null;
-    }
-
     public static Integer extractAlunoNumber(String url) {
-        String regex = "/aluno/(\\d+)";
+        String regex = " /aluno/(\\d+) ";
         
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(url);
@@ -50,7 +40,6 @@ public class ClientHandler implements Runnable {
 
     @Override
     public void run() {
-
         try {
 
             System.out.println(
@@ -60,32 +49,46 @@ public class ClientHandler implements Runnable {
             try (
                     PrintWriter out = new PrintWriter(this.socket.getOutputStream());
                     BufferedReader in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));) {
-
-                String responseBody = "404";
+                
+                String responseCode = "200 OK";
+                String responseBody = "";
                 String message = in.readLine();
-                System.out.println(message);
                 if (message != null) {
-                    if(this.getMethod(message) == "POST") {
+                    if(message.startsWith("POST")) {
                         try {
-                            sh.createStudent(this);
+                            studentHandler.createStudent(this);
                         } catch (InterruptedException e) {
                         }
                     }
                     else if (message.startsWith("GET")) {
                         try {
-                            //System.out.println(sh.getStudentToHTML(extractAlunoNumber(message), this));
                             int studentId = extractAlunoNumber(message);
-                            if (sh.studentExists(studentId, this))
-                                responseBody = sh.getStudentToHTML(studentId, this);
+                            if (studentHandler.studentExists(studentId, this))
+                                responseBody = studentHandler.getStudentToHTML(studentId, this);
                             else
-                                responseBody = "<html><body><h3>Erro 404: Aluno " + extractAlunoNumber(message) + " não existe!<h3/><body/><html/>";
+                                responseBody = "<html><body><h3>Erro: Aluno " + extractAlunoNumber(message) + " não existe!<h3/><body/><html/>";
+                                responseCode = "404 NOT FOUND";
                             
+                        } catch (InterruptedException e) {
+                        }
+                    }
+                    else if (message.startsWith("DELETE")) {
+                        try {
+                            int studentId = extractAlunoNumber(message);
+                            if (studentHandler.studentExists(studentId, this)) {
+                                studentHandler.deleteStudent(studentId, this);
+                                responseBody = "<html><body><h3>Aluno: " + extractAlunoNumber(message) + ". deletado!<h3/><body/><html/>";
+                            }
+                            else {
+                                responseBody = "<html><body><h3>Erro: Aluno " + extractAlunoNumber(message) + " não existe!<h3/><body/><html/>";
+                                responseCode = "404 NOT FOUND";
+                            }
                         } catch (InterruptedException e) {
                         }
                     }
                 }
 
-                out.println("HTTP/1.1 200 OK");
+                out.println("HTTP/1.1 " + responseCode);
                 out.println("Content-Type: text/html; charset=UTF-8");
                 out.println("Content-Length: " + responseBody.length());
                 out.println();

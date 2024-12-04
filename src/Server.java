@@ -25,7 +25,7 @@ public class Server {
             System.out.println("Servidor iniciado na porta: " + this.port);
 
             while (true) { 
-                new Thread(new ClientHandler(server.accept(), this.sh)).start();
+                new Thread(new ClientProcessor(server.accept(), this.sh)).start();
             }
         }
 
