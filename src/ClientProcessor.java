@@ -66,7 +66,7 @@ public class ClientProcessor implements Runnable {
                             if (studentHandler.studentExists(studentId, this))
                                 responseBody = studentHandler.getStudentToHTML(studentId, this);
                             else
-                                responseBody = "<html><body><h3>Erro: Aluno " + extractAlunoNumber(message) + " não existe!</h3></body></html>";
+                                responseBody = "<html><body><h3>Erro: Aluno " + extractAlunoNumber(message) + " nao existe!</h3></body></html>";
                                 responseCode = "404 NOT FOUND";
                             
                         } catch (InterruptedException e) {
@@ -80,8 +80,8 @@ public class ClientProcessor implements Runnable {
                                 responseBody = "<html><body><h3>Aluno: " + extractAlunoNumber(message) + ". deletado!</h3></body></html>";
                             }
                             else {
-                                responseBody = "<html><body><h3>Erro: Aluno " + extractAlunoNumber(message) + " não existe!</h3></body></html>";
-                                responseCode = "200 OK";
+                                responseBody = ("<html><body><h3>Erro: Aluno " + extractAlunoNumber(message) + " nao existe!</h3></body></html>");
+                                responseCode = "404 NOT FOUND";
                             }
                         } catch (InterruptedException e) {
                         }
