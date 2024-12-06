@@ -24,8 +24,14 @@ public class StudentHandler {
         notifyAll();
     }
 
-    public synchronized Student getStudent(int studentId, ClientProcessor user) throws InterruptedException {
-        this.getAcess(user);
+    private void checkIfNotBeingAltered() throws InterruptedException {
+        while (this.user != null) {
+            wait();
+        }
+    }
+
+    public Student getStudent(int studentId, ClientProcessor user) throws InterruptedException {
+        this.checkIfNotBeingAltered();
         Iterator<Student> studentIterator = this.students.iterator();
         while (studentIterator.hasNext()) {
             Student student = studentIterator.next();
@@ -38,7 +44,7 @@ public class StudentHandler {
         return null;
     }
 
-    public synchronized int getLastStudentId() {
+    public int getLastStudentId() {
         int nextId = 1;
         
         Iterator<Integer> idIterator = this.usedIds.iterator();
@@ -61,8 +67,8 @@ public class StudentHandler {
         return newStudent;
     }
 
-    public synchronized void showAllStudents(ClientProcessor user) throws InterruptedException {
-        this.getAcess(user);
+    public void showAllStudents(ClientProcessor user) throws InterruptedException {
+        this.checkIfNotBeingAltered();
         Iterator<Student> studenIterator = this.students.iterator();
         while (studenIterator.hasNext()) {
             Student student = studenIterator.next();
@@ -71,8 +77,8 @@ public class StudentHandler {
         this.leftAcess();
     }
 
-    public synchronized String getStudentToHTML(int studentId, ClientProcessor user) throws InterruptedException {
-        this.getAcess(user);
+    public String getStudentToHTML(int studentId, ClientProcessor user) throws InterruptedException {
+        this.checkIfNotBeingAltered();
         Iterator<Student> studentIterator = this.students.iterator();
         while (studentIterator.hasNext()) {
             Student student = studentIterator.next();
@@ -85,8 +91,8 @@ public class StudentHandler {
         return null;
     }
 
-    public synchronized Boolean studentExists(int studentId, ClientProcessor user) throws InterruptedException {
-        this.getAcess(user);
+    public Boolean studentExists(int studentId, ClientProcessor user) throws InterruptedException {
+        this.checkIfNotBeingAltered();
         Iterator<Student> studentIterator = this.students.iterator();
         while (studentIterator.hasNext()) {
             Student student = studentIterator.next();
