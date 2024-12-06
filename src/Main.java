@@ -9,7 +9,7 @@ public class Main {
 
         try {
             server.start();
-        } catch (IOException ex) {
+        } catch (IOException e) {
         }
 
         
